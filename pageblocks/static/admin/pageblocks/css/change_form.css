@@ -1,0 +1,77 @@
+[v-cloak] {display: none}
+
+.text-right {
+    text-align: right;
+}
+.form-row > div > div {
+    width: 100%;
+}
+.multi-language-row {
+    clear: both;
+    margin-left: 170px;
+    margin-bottom: 4px;
+}
+.multi-language-row input {
+    width: calc(100% - 100px);
+}
+
+.page-block-editor fieldset {
+    clear: both;
+    margin-bottom: 20px;
+    padding-top: 10px;
+}
+.page-block-editor .block {
+    clear: both;
+    border: 1px solid var(--border-color);
+    margin-bottom: 8px;
+    padding: 4px;
+}
+.page-block-editor .block .header {
+    background: var(--darkened-bg);
+    border: 1px solid var(--hairline-color);
+    padding: 4px;
+    margin: -4px;
+    margin-bottom: 8px;
+    display: flex;
+}
+.page-block-editor .block .header > div {
+    width: 50%;
+}
+.page-block-editor .block .header .bold {
+    font-weight: bold;
+}
+.page-block-editor .block .header .buttons a {
+    margin-left: 26px;
+    font-size: 16px;
+    cursor: pointer;
+}
+.page-block-editor .block .header .buttons a.disabled {
+    opacity: 0.2;
+}
+.page-block-editor .button {
+    padding: 6px;
+}
+
+.page-block-editor .field label {
+    clear: left;
+}
+.page-block-editor .field textarea {
+    resize: none;
+    width: calc(100% - 16px);
+}
+.page-block-editor .field textarea.html {
+    height: 200px;
+}
+.page-block-editor .field > .error {
+    color: var(--error-fg);
+}
+
+@media (max-width: 767px) {
+    .multi-language-row {
+        width: 100%;
+        margin-left: 0px;
+    }
+    .multi-language-row input {
+        width: calc(100% - 30px);
+    }
+}

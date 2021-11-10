@@ -1,0 +1,4 @@
+<multi-language-input 
+    name="{{ widget.name }}"{% if widget.value != None %} initial-value="{{ widget.value|stringformat:'s' }}"{% endif %}{% include "django/forms/widgets/attrs.html" %} v-cloak 
+    languages="{{ languages|safe }}"
+/>

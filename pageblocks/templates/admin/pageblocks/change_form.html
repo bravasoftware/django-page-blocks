@@ -1,0 +1,13 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrahead %}{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14" defer></script>
+<script type="text/javascript" src="{% static 'admin/pageblocks/js/change_form.js' %}" defer></script>
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "@fortawesome/fontawesome-free/css/all.min.css" %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" integrity="sha512-Cv93isQdFwaKBV+Z4X8kaVBYWHST58Xb/jVOcV9aRsGSArZsgAnFIhMpDoMDcFNoUtday1hdjn0nGp3+KZyyFw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" type="text/css" href="{% static "admin/pageblocks/css/change_form.css" %}">
+{% endblock %}
