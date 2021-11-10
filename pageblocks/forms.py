@@ -53,6 +53,10 @@ class PageAdminForm(forms.ModelForm):
     }), required=False)
     slug = forms.SlugField(required=False)
 
+    class Meta:
+        model = Page
+        fields = ('title', 'slug',)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

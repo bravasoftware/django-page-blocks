@@ -128,7 +128,7 @@ class PageEditingTestCase(TestCase):
         })
         with translation_override('en'):
             self.assertFalse(form.is_valid(), 'Form validated when it shouldn\'t have')
-            self.assertEqual(form.errors['blocks'].as_text(), '* B:en:0:html This field is required')
+            self.assertEqual(form.errors['blocks'].as_text(), '* B:en:0:html:This field is required')
 
     def test_create_page_with_nested_blocks(self):
         """ ContainerBlocks are special block types which allow other blocks to be embedded within them """
