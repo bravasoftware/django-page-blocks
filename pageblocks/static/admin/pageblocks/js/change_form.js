@@ -59,6 +59,55 @@ window.addEventListener('load', () => {
     }
   };
 
+  Vue.component('image-uploader', {
+    template: `
+      <div class="image-uploader">
+        <div class="selector" v-if="!image" v-on:click.prevent="$refs.newImage.click()">
+          <span>{{ getText('labelBtnAdd') }}</span>
+        </div>
+        <img v-if="image" :src="image" v-on:click.prevent="$refs.newImage.click()"/>
+        <input v-on:change="handleImage" ref="newImage" class="new-image-btn" type="file" accept="image/*" style="display: none;"/>
+      </div>
+    `,
+    mixins: [TranslateMixin],
+    data: function() {
+      return {
+        image: null
+      };
+    },
+    mounted: function() {
+      this.image = this.value !== undefined ? this.value : null;
+    },
+    methods: {
+      handleImage(e) {
+        this.readImage(e.target.files[0]).then((img) => {
+          this.image = img;
+          this.$emit('input', this.image);
+          this.$emit('change', this.image);
+        });
+      },
+      readImage(fileObject) {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            resolve(e.target.result);
+          };
+          reader.readAsDataURL(fileObject);
+        });
+      },
+      clear() {
+        this.image = null;
+        this.$emit('input', this.image);
+        this.$emit('change', this.image);
+      }  
+    },
+    watch: {
+      value: function(nv) {
+        this.image = nv !== undefined ? nv : null;
+      }
+    }  
+  });
+
   Vue.component('page-block-editor-field', {
     template: `
     <div class="field" :class="hasError() ? 'errors' : ''">
@@ -73,6 +122,10 @@ window.addEventListener('load', () => {
         :block-index="blockIndex"
         :input-name="inputName"
         :input-language="inputLanguage"></block-editor>
+      <image-uploader
+        v-if="field.input_type === 'image'"
+        v-model="value"
+        v-on:change="onValueChanged()"></image-uploader>
       <div v-if="hasError()" class="error">
         {{ getError() }}
       </div>

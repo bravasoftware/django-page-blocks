@@ -65,6 +65,23 @@
 .page-block-editor .field > .error {
     color: var(--error-fg);
 }
+.page-block-editor .image-uploader {
+    display: inline-block;
+}
+.page-block-editor .image-uploader .selector {
+    width: 240px; height: 240px;
+    background: #aaa;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    color: #000;
+    cursor: pointer;
+}
+.page-block-editor .image-uploader img {
+    width: 240px; height: 240px;
+    object-fit: contain;
+    cursor: pointer;
+}
 
 @media (max-width: 767px) {
     .multi-language-row {

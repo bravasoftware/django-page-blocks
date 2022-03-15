@@ -37,6 +37,9 @@ class TextField(BaseField):
 class HTMLField(TextField):
     input_classes = ['html']
 
+class ImageField(BaseField):
+    input_type = 'image'
+
 class BlockStreamField(BaseField):
     input_type = 'blockstream'
 
@@ -178,6 +181,16 @@ class HTMLBlock(BaseBlock):
     fields = (
         ('html', HTMLField(label=gettext_lazy('Content'), required=True)),
     )
+
+class ImageBlock(BaseBlock):
+    template_name = 'pageblocks/blocks/html.html'
+    name = gettext_lazy('Image')
+    description = gettext_lazy('A simple image')
+    fields = (
+        ('image', ImageField(label=gettext_lazy('Image'), required=True)),
+        ('alt', CharField(label=gettext_lazy('Alt text'), required=False))
+    )
+
 
 class ContainerBlock(BaseBlock):
     """

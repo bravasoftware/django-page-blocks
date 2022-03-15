@@ -73,3 +73,10 @@ urlpatterns = [
 ## MultiLanguageField
 
 By default, Page.title is a MultiLanguageField, which simply stores a dictionary with values for each language defined in settings.LANGUAGES.  You can render this or any other MultiLanguageField in a template by using the multilang tag, e.g. ``{% multilang page.title %}``
+
+
+## Custom Blocks
+
+This package comes with a couple of built in blocks, but you'll probably quickly outgrow them and need to add your own.  You can do this by extending the ``pageblocks.blocks.BaseBlock`` class.
+
+This documentation needs fleshing out a bit, but for now, a good place to start would be to look at the source code for HTMLBlock which should hopefully give you an idea of how to extend it.
