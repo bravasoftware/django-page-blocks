@@ -59,3 +59,8 @@ class PageBlock(models.Model):
 
     def get_block(self):
         return class_from_name(self.type)(data=self.data, instance=self)
+
+
+class Image(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    image = models.ImageField(upload_to='pageblocks/%Y/%m/%d/')

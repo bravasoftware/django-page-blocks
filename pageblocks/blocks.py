@@ -1,12 +1,17 @@
+import base64
 import copy
+import imghdr
+import re
+import uuid
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy, gettext
+from django.core.files.base import ContentFile
 
 from .utils import class_from_name
-from .models import PageBlock
+from .models import PageBlock, Image
 
 
 class BaseField(object):
@@ -138,6 +143,9 @@ class BaseBlock(object):
     def data_to_representation(self):
         return self.data
 
+    def data_to_internal_value(self, data):
+        return data
+
     def clean(self, *args, **kwargs):
         """ Validate the block data """
         for field_id, field in self.fields:
@@ -146,16 +154,18 @@ class BaseBlock(object):
 
         return self.data
 
-    def save(self, page, language, block_index, parent, *args, **kwargs):
-        if not self.instance:
-            self.instance = PageBlock(page=page, language=language)
-        self.instance.language = language
-        self.instance.type = self.data['type']
-        self.instance.data = self.data['data']
-        self.instance.index = block_index
-        self.instance.parent = parent
-        self.instance.save()
+    def get_instance_for_saving(self, page, language, block_index, parent, *args, **kwargs):
+        instance = self.instance if self.instance else PageBlock(page=page, language=language)
+        instance.language = language
+        instance.type = self.data['type']
+        instance.data = self.data_to_internal_value(self.data['data'])
+        instance.index = block_index
+        instance.parent = parent
+        return instance
 
+    def save(self, page, language, block_index, parent, *args, **kwargs):
+        self.instance = self.get_instance_for_saving(page, language, block_index, parent, *args, **kwargs)
+        self.instance.save()
         return [self.instance]
 
     def render(self):
@@ -167,7 +177,7 @@ class BaseBlock(object):
     def get_render_context_data(self, *args, **kwargs):
         return {
             'instance': self.instance,
-            'block': self.instance.data
+            'block': self.data_to_representation()
         }
 
 
@@ -188,8 +198,58 @@ class ImageBlock(BaseBlock):
     description = gettext_lazy('A simple image')
     fields = (
         ('image', ImageField(label=gettext_lazy('Image'), required=True)),
-        ('alt', CharField(label=gettext_lazy('Alt text'), required=False))
+        ('alt', CharField(label=gettext_lazy('Alt text'), required=False)),
+        ('class', CharField(label=gettext_lazy('Class'), required=False)),
     )
+
+    def data_to_representation(self):
+        data = self.data
+        if data.get('image_id', None):
+            try:
+                data['image'] = Image.objects.get(id=data['image_id']).image.url
+            except Image.DoesNotExist:
+                pass
+        return data
+
+    def data_to_internal_value(self, data):
+        image = None
+        if self.instance and self.instance.data.get('image_id', None):
+            image = Image.objects.filter(id=self.instance.data['image_id']).first()
+
+        if not re.search('^\/|^(?i)http', data['image']):
+            if not image:
+                image = Image()
+
+            if image.image:
+                image.image.delete()
+
+            image.image = self.image_to_content_file(data['image'])
+            image.save()
+
+        data['image_id'] = str(image.id) if image else None
+
+        del data['image']
+        return data
+
+    def image_to_content_file(self, data):
+        if 'data:' in data and ';base64,' in data:
+            header, data = data.split(';base64,')
+
+        # Try to decode the file. Return validation error if it fails.
+        try:
+            decoded_file = base64.b64decode(data)
+        except Exception:
+            raise TypeError('Invalid image data')
+
+        file_name = str(uuid.uuid4())[:12]
+        file_extension = self.get_file_extension(file_name, decoded_file)
+
+        return ContentFile(decoded_file, name="%s.%s" % (file_name, file_extension))
+
+    def get_file_extension(self, file_name, decoded_file):
+        extension = imghdr.what(file_name, decoded_file)
+        extension = "jpg" if extension == "jpeg" else extension
+        return extension
 
 
 class ContainerBlock(BaseBlock):
