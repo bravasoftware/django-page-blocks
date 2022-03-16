@@ -70,6 +70,7 @@ window.addEventListener('load', () => {
       </div>
     `,
     mixins: [TranslateMixin],
+    props: ['value'],
     data: function() {
       return {
         image: null

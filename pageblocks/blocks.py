@@ -183,7 +183,7 @@ class HTMLBlock(BaseBlock):
     )
 
 class ImageBlock(BaseBlock):
-    template_name = 'pageblocks/blocks/html.html'
+    template_name = 'pageblocks/blocks/image.html'
     name = gettext_lazy('Image')
     description = gettext_lazy('A simple image')
     fields = (
