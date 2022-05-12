@@ -122,6 +122,30 @@ class BlockProcessor(object):
     def render(self, blocks):
         return ''.join([block.get_block().render() for block in blocks])
 
+    def render_script_tags(self, blocks):
+        scripts = []
+        for block in blocks:
+            for script in block.get_block().get_scripts():
+                if not script:
+                    continue
+
+                if script[0] != '<':
+                    script = '<script type="text/javascript" src="%s"></script>' % script
+                scripts.append(script)
+        return '\n'.join([script for script in set(scripts)])
+
+    def render_stylesheet_tags(self, blocks):
+        stylesheets = []
+        for block in blocks:
+            for ss in block.get_block().get_stylesheets():
+                if not ss:
+                    continue
+
+                if ss[0] != '<':
+                    ss = '<link href="%s" rel="stylesheet" />' % ss
+                stylesheets.append(ss)
+
+        return '\n'.join([ss for ss in set(stylesheets)])
 
 
 class BaseBlock(object):
@@ -179,6 +203,18 @@ class BaseBlock(object):
             'instance': self.instance,
             'block': self.data_to_representation()
         }
+
+    def get_scripts(self, *args, **kwargs):
+        """
+        Script dependencies to include for this block
+        """
+        return []
+
+    def get_stylesheets(self, *args, **kwargs):
+        """
+        Stylesheet dependencies to include for this block
+        """
+        return []
 
 
 class HTMLBlock(BaseBlock):

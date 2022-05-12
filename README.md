@@ -56,7 +56,7 @@ class MyPageView(PageView):
 {% load pageblocks %}
 ```
 
-The current page will be available in the template as the ``page`` object and you can now render your page content with ``{% pageblocks page %}``.
+The current page will be available in the template as the ``page`` object and you can now render your page content with ``{% pageblocks page %}``.  Custom blocks can also include stylesheet and script dependencies, which you can render in your template with ``{% pageblocks_scripts page %}`` and ``{% pageblocks_stylesheets page %}`` accordingly.
 
 Of course you can mix and match this to meet your needs.  If you need something more low level, you can render an individual list of blocks with the blocks tag .. e.g. ``{% blocks blocks %}``
 
