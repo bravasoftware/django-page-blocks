@@ -2,7 +2,7 @@ import uuid
 
 from django.conf import settings
 from django.db import models
-from django.utils.translation import get_language, gettext_lazy
+from django.utils.translation import get_language, gettext
 
 from .utils import class_from_name
 from . import PAGEBLOCKS_DEFAULT_AVAILABLE
@@ -25,7 +25,7 @@ class Page(models.Model):
     title = MultiLanguageField()
 
     def __str__(self):
-        return self.title.get(get_language(), gettext_lazy('Untitled'))
+        return self.title.get(get_language(), gettext('Untitled'))
 
     @classmethod
     def get_available_block_type_classes(cls):

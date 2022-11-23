@@ -8,16 +8,16 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-page-blocks',
-    version='0.3.0',
+    version='0.3.1',
     packages=find_packages(),
     include_package_data=True,
     license='MIT License',
     description='A simple, Wagtail CMS inspired content block engine for Django.  Intended to give slightly more control than regular flatpages.',
     long_description=README,
     long_description_content_type='text/markdown',
-    url='https://www.bravasoftware.com/',
+    url='https://github.com/bravasoftware/django-page-blocks',
     author='Mark Skelton',
-    author_email='mark@bravasoftware.com',
+    author_email='studio@bravasoftware.com',
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
