@@ -249,7 +249,7 @@ window.addEventListener('load', () => {
         if (index === 0 && this.blocks.length === 1) {
           this.blocks = []
         } else {
-          this.blocks = this.blocks.splice(index, 1);
+          this.blocks.splice(index, 1);
         }
         this.onBlockChanged();
       },
