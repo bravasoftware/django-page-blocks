@@ -157,12 +157,12 @@ window.addEventListener('load', () => {
   Vue.component('block-editor', {
     template: `
     <div class="block-editor">
-      <div class="block" v-for="(block, index) in value" :key="'block-' + getBlockIndexKey(index)" v-if="availableBlocks[block.type] !== undefined">
+      <div class="block" v-for="(block, index) in blocks" :key="'block-' + getBlockIndexKey(index)" v-if="availableBlocks[block.type] !== undefined">
         <div class="header row">
           <div class="bold">{{ getBlockTypeName(block.type) }} <span :class="'flag-icon flag-icon-'"></span></div>
           <div class="text-right buttons">
-            <a href="javascript:;" :disabled="index <= 0" :class="{'disabled': index <= 0}"><i class="fa fas fa-caret-up"></i></a>
-            <a href="javascript:;" :disabled="index + 1 >= value.length" :class="{'disabled': index + 1 >= value.length}"><i class="fa fas fa-caret-down"></i></a>
+            <a href="javascript:;" :disabled="index <= 0" :class="{'disabled': index <= 0}" v-on:click.prevent="shiftBlock(index, -1)"><i class="fa fas fa-caret-up"></i></a>
+            <a href="javascript:;" :disabled="index + 1 >= blocks.length" :class="{'disabled': index + 1 >= blocks.length}" v-on:click.prevent="shiftBlock(index, 1)"><i class="fa fas fa-caret-down"></i></a>
 
             <a v-on:click.prevent="deleteBlock(index)"><i class="fa fas fa-trash"></i></a>
           </div>
@@ -173,7 +173,7 @@ window.addEventListener('load', () => {
           :field-id="field"
           :field="availableBlocks[block.type].fields[field]"
           v-model="block.data[field]"
-          v-on:change="onValueChanged()"
+          v-on:change="onBlockChanged()"
           :available-blocks="availableBlocks"
           :block-index="getBlockIndex(index)"
           :input-name="inputName"
@@ -195,7 +195,7 @@ window.addEventListener('load', () => {
       </div>
     </div>
     `,
-    props: ['value', 'availableBlocks', 'blockIndex', 'inputName', 'inputLanguage'],
+    props: ['value', 'blocks', 'availableBlocks', 'blockIndex', 'inputName', 'inputLanguage'],
     mixins: [TranslateMixin],
     data: function() {
       return {
@@ -204,8 +204,12 @@ window.addEventListener('load', () => {
     },
     mounted: function() {
       this.newBlockType = this.availableBlocks ? Object.keys(this.availableBlocks)[0] : null;
+      this.parseValue();
     },
     methods: {
+      parseValue: function() {
+        this.blocks = JSON.parse(JSON.stringify(this.value));
+      },
       getBlockIndex: function(index) { 
         const parts = JSON.parse(JSON.stringify(this.blockIndex ? this.blockIndex : []));
         parts.push(index);
@@ -214,9 +218,9 @@ window.addEventListener('load', () => {
       getBlockIndexKey: function(index) {
         return this.getBlockIndex(index).join('-');
       },
-      onValueChanged: function() {
-        this.$emit('input', this.value);
-        this.$emit('change', this.value);
+      onBlockChanged: function() {
+        this.$emit('input', this.blocks);
+        this.$emit('change', this.blocks);
       },
       addBlock: function(blockType) {
         const initial = {};
@@ -228,11 +232,11 @@ window.addEventListener('load', () => {
           }
         }
 
-        this.value.push({
+        this.blocks.push({
           'type': blockType,
           'data': initial
         });
-        this.onValueChanged();
+        this.onBlockChanged();
       },
       getBlockTypeName: function(type) {
         return this.availableBlocks && this.availableBlocks[type] ? this.availableBlocks[type].name : this.getText('labelUnknown');
@@ -242,12 +246,25 @@ window.addEventListener('load', () => {
           return false;
         }
 
-        if (index === 0 && this.value.length === 1) {
-          this.value = []
+        if (index === 0 && this.blocks.length === 1) {
+          this.blocks = []
         } else {
-          this.value = this.value.splice(index, 1);
+          this.blocks = this.blocks.splice(index, 1);
         }
-        this.onValueChanged();
+        this.onBlockChanged();
+      },
+      shiftBlock: function(index, direction) {
+        if (index + direction < 0 || index + direction >= this.blocks.length) {
+          return;
+        }
+        const tmp = this.blocks[index + direction];
+        this.blocks[index + direction] = this.blocks[index];
+        this.blocks[index] = tmp;
+        this.onBlockChanged();
+      }
+    }, watch: {
+      value: function() {
+        this.parseValue();
       }
     }
   });
