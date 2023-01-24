@@ -11,7 +11,7 @@ from django.utils.translation import gettext_lazy, gettext
 from django.core.files.base import ContentFile
 
 from .utils import class_from_name
-from .models import PageBlock, Image
+from .models import Image
 
 
 class BaseField(object):
@@ -107,14 +107,14 @@ class BlockProcessor(object):
         for block_index, block_data in enumerate(data):
             block_class = class_from_name(block_data['type'])
             block = block_class(block_data,
-                                instance=PageBlock.objects.get(page=page, id=block_data['id']) if block_data.get('id', None) else None)
+                                instance=page.blocks.model.objects.get(page=page, id=block_data['id']) if block_data.get('id', None) else None)
 
             processed_blocks += block.save(page=page,
                                            language=language if not parent else parent.language,
                                            block_index=block_index, parent=parent)
 
         if not parent:
-            cleanup_qs = PageBlock.objects.filter(page=page, language=language).exclude(id__in=[str(rec.id) for rec in processed_blocks])
+            cleanup_qs = page.blocks.model.objects.filter(page=page, language=language).exclude(id__in=[str(rec.id) for rec in processed_blocks])
             cleanup_qs.delete()
 
         return processed_blocks
@@ -179,7 +179,7 @@ class BaseBlock(object):
         return self.data
 
     def get_instance_for_saving(self, page, language, block_index, parent, *args, **kwargs):
-        instance = self.instance if self.instance else PageBlock(page=page, language=language)
+        instance = self.instance if self.instance else page.blocks.model(page=page, language=language)
         instance.language = language
         instance.type = self.data['type']
         instance.data = self.data_to_internal_value(self.data['data'])
@@ -313,7 +313,7 @@ class ContainerBlock(BaseBlock):
 
     def save(self, page, language, block_index, parent, *args, **kwargs):
         if not self.instance:
-            self.instance = PageBlock(page=page, language=language)
+            self.instance = page.blocks.model(page=page, language=language)
 
         block_data = copy.deepcopy(self.data['data'])
         sub_blocks = BlockProcessor().save(page, block_data.pop('blocks'), parent=self.instance)

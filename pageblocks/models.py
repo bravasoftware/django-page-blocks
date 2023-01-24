@@ -19,10 +19,13 @@ class MultiLanguageField(models.JSONField):
         return super().formfield(**defaults)
 
 
-class Page(models.Model):
+class AbstractPage(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     slug = models.SlugField(unique=True, null=False, blank=False)
     title = MultiLanguageField()
+
+    class Meta:
+        abstract = True
 
     def __str__(self):
         return self.title.get(get_language(), gettext('Untitled'))
@@ -43,10 +46,11 @@ class Page(models.Model):
     def get_blocks_for_language(self, language):
         return self.blocks.filter(language=language, parent=None).order_by('index')
 
+class Page(AbstractPage):
+    pass
 
-class PageBlock(models.Model):
+class AbstractPageBlock(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='blocks', db_index=True)
     language = models.CharField(max_length=2, db_index=True)
     index = models.IntegerField(default=-1)
     type = models.TextField()
@@ -55,11 +59,16 @@ class PageBlock(models.Model):
                                related_name='children')
 
     class Meta:
+        abstract = True
         ordering = ['index']
 
     def get_block(self):
         return class_from_name(self.type)(data=self.data, instance=self)
 
+
+class PageBlock(AbstractPageBlock):
+    page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='blocks', db_index=True)
+    
 
 class Image(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

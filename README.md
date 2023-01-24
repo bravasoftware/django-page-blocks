@@ -23,6 +23,36 @@ INSTALLED_APPS = [
 
 You can then either use the base model pageblocks.Page or extend it.
 
+## Extending the Models
+
+There are two options to extend these models depending on your needs, however you'll need to make a decision on it before starting your project or else you may run into problems later.
+
+### Option 1 - Use pageblocks.Page as a base class
+
+```
+from pageblocks.models import Page
+
+class MyPage(Page):
+  ...
+```
+
+This option is pretty easy to use, but has a major drawback if you need to override any of the base fields (e.g. to make slug non unique)
+
+
+### Option 2 - AbstractPage and AbstractPageBlock
+
+This option allows full control over the model, but you need to have models for both Page and PageBlock in your project, and PageBlock needs to have a foreign key field with the related name of 'blocks':
+
+```
+from pageblocks.models import AbstractPage, AbstractPageBlock
+
+class Page(AbstractPage):
+  pass
+
+class PageBlock(AbstractPageBlock):
+  page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='blocks', db_index=True)
+```
+
 
 ## Admin
 
