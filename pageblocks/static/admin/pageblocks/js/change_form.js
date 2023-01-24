@@ -195,11 +195,12 @@ window.addEventListener('load', () => {
       </div>
     </div>
     `,
-    props: ['value', 'blocks', 'availableBlocks', 'blockIndex', 'inputName', 'inputLanguage'],
+    props: ['value', 'availableBlocks', 'blockIndex', 'inputName', 'inputLanguage'],
     mixins: [TranslateMixin],
     data: function() {
       return {
-        newBlockType: null
+        newBlockType: null,
+        blocks: [],
       }
     },
     mounted: function() {
