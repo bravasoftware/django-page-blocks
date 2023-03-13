@@ -121,10 +121,18 @@ class BlockProcessor(object):
 
     def render(self, blocks):
         return ''.join([block.get_block().render() for block in blocks])
+    
+    def flatten_blocks(self, blocks):
+        flattened_blocks = []
+        for block in blocks:
+            flattened_blocks.append(block)
+            if block.children.count() > 0:
+                flattened_blocks += self.flatten_blocks(block.children.all())
+        return flattened_blocks
 
     def render_script_tags(self, blocks):
         scripts = []
-        for block in blocks:
+        for block in self.flatten_blocks(blocks):
             for script in block.get_block().get_scripts():
                 if not script:
                     continue
@@ -136,7 +144,7 @@ class BlockProcessor(object):
 
     def render_stylesheet_tags(self, blocks):
         stylesheets = []
-        for block in blocks:
+        for block in self.flatten_blocks(blocks):
             for ss in block.get_block().get_stylesheets():
                 if not ss:
                     continue
