@@ -24,12 +24,8 @@ def block_scripts(page_blocks):
 def block_stylesheets(page_blocks):
     return mark_safe(BlockProcessor().render_stylesheet_tags(page_blocks))
 
-
 def get_blocks_for_page(page):
-    qs = page.get_blocks_for_language(get_language())
-    if qs.count() == 0:
-        qs = page.get_blocks_for_language(settings.LANGUAGE_CODE)
-    return qs
+    return page.get_blocks()
 
 @register.simple_tag
 def pageblocks(page):

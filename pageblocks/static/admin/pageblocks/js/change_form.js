@@ -112,7 +112,9 @@ window.addEventListener('load', () => {
   Vue.component('page-block-editor-field', {
     template: `
     <div class="field" :class="hasError() ? 'errors' : ''">
-      <label>{{ field.label }}<span class="small" v-if="field.required">*</span></label>
+      <label>
+        {{ field.label }}<span class="small" v-if="field.required">*</span>
+      </label>
       <textarea v-if="field.input_type === 'textarea'" :required="field.required" :class="field.class" v-model="value" v-on:change="onValueChanged()"></textarea>
       <input v-if="field.input_type === 'text'" :type='field.input_type' :required="field.required" :class="field.class" v-model="value" v-on:change="onValueChanged()" />
       <block-editor
@@ -122,7 +124,8 @@ window.addEventListener('load', () => {
         v-on:change="onValueChanged()"
         :block-index="blockIndex"
         :input-name="inputName"
-        :input-language="inputLanguage"></block-editor>
+        :languages="languages"
+        :default-language="defaultLanguage"></block-editor>
       <image-uploader
         v-if="field.input_type === 'image'"
         v-model="value"
@@ -132,7 +135,10 @@ window.addEventListener('load', () => {
       </div>
     </div>
     `,
-    props: ['value', 'fieldId', 'field', 'availableBlocks', 'blockIndex', 'inputName', 'inputLanguage'],
+    props: ['value', 'fieldId', 'field', 'availableBlocks', 'blockIndex', 'inputName', 'languages', 'defaultLanguage'],
+    data: function() {
+      return {};
+    },
     methods: {
       onValueChanged: function() {
         this.$emit('input', this.value);
@@ -142,9 +148,9 @@ window.addEventListener('load', () => {
         return this.getError() !== null;
       },
       getError: function() {
-        if (this.$root.blockEditorErrors && this.inputName && this.inputLanguage && this.$root.blockEditorErrors[this.inputName]) {
+        if (this.$root.blockEditorErrors && this.inputName && this.$root.blockEditorErrors[this.inputName]) {
           for (const err of this.$root.blockEditorErrors[this.inputName]) {
-            if (err[1] === this.inputLanguage && err[2] === this.blockIndex.join(',') && err[3] == this.fieldId) {
+            if (err[1] === this.blockIndex.join(',') && err[2] == this.fieldId) {
               return err[err.length-1];
             }
           }
@@ -159,7 +165,9 @@ window.addEventListener('load', () => {
     <div class="block-editor">
       <div class="block" v-for="(block, index) in blocks" :key="'block-' + getBlockIndexKey(index)" v-if="availableBlocks[block.type] !== undefined">
         <div class="header row">
-          <div class="bold">{{ getBlockTypeName(block.type) }} <span :class="'flag-icon flag-icon-'"></span></div>
+          <div class="bold">
+            {{ getBlockTypeName(block.type) }}
+          </div>
           <div class="text-right buttons">
             <a href="javascript:;" :disabled="index <= 0" :class="{'disabled': index <= 0}" v-on:click.prevent="shiftBlock(index, -1)"><i class="fa fas fa-caret-up"></i></a>
             <a href="javascript:;" :disabled="index + 1 >= blocks.length" :class="{'disabled': index + 1 >= blocks.length}" v-on:click.prevent="shiftBlock(index, 1)"><i class="fa fas fa-caret-down"></i></a>
@@ -168,18 +176,45 @@ window.addEventListener('load', () => {
           </div>
         </div>
 
-        <page-block-editor-field 
-          v-for="(field, fieldIndex) in Object.keys(availableBlocks[block.type].fields)" :key="'block-' + getBlockIndexKey(index) + '-' + fieldIndex"
-          :field-id="field"
-          :field="availableBlocks[block.type].fields[field]"
-          v-model="block.data[field]"
-          v-on:change="onBlockChanged()"
-          :available-blocks="availableBlocks"
-          :block-index="getBlockIndex(index)"
-          :input-name="inputName"
-          :input-language="inputLanguage"
-          >
-        </page-block-editor-field>
+        <div v-for="(field, fieldIndex) in Object.keys(availableBlocks[block.type].fields)" :key="'block-' + getBlockIndexKey(index) + '-' + fieldIndex"
+            :class="{'multi-lingual': availableBlocks[block.type].fields[field].multi_lingual}">
+          <ul v-if="availableBlocks[block.type].fields[field].multi_lingual" class="field-language-picker">
+            <li v-for="language in Object.keys(languages)">
+              <a v-on:click.prevent="setActiveLanguageForField(block, field, language)" href="javascript:;" :title="languages[language]" :class="{'active': isActiveLanguageForField(block, field, language)}">
+                <span :class="'flag-icon flag-icon-' + lookupFlag(language)" ></span>
+              </a>
+            </li>
+          </ul>
+
+          <page-block-editor-field 
+            :field-id="field"
+            :field="availableBlocks[block.type].fields[field]"
+            v-model="block.data[field]"
+            v-on:change="onBlockChanged()"
+            :available-blocks="availableBlocks"
+            :block-index="getBlockIndex(index)"
+            :input-name="inputName"
+            :languages="languages"
+            :default-language="defaultLanguage"
+            v-if="isActiveLanguageForField(block, field, defaultLanguage)"
+            >
+          </page-block-editor-field>
+
+          <page-block-editor-field 
+            :field-id="field"
+            :field="availableBlocks[block.type].fields[field]"
+            v-model="block.i18n_data[getActiveLanguageForField(block, field)][field]"
+            v-on:change="onBlockChanged()"
+            :available-blocks="availableBlocks"
+            :block-index="getBlockIndex(index)"
+            :input-name="inputName"
+            :languages="languages"
+            :default-language="defaultLanguage"
+            v-if="!isActiveLanguageForField(block, field, defaultLanguage) && block.i18n_data[getActiveLanguageForField(block, field)]"
+            >
+          </page-block-editor-field>
+
+        </div>
       </div>
 
       <div class="buttons" style="display: flex; clear: both;" v-if="newBlockType">
@@ -195,12 +230,13 @@ window.addEventListener('load', () => {
       </div>
     </div>
     `,
-    props: ['value', 'availableBlocks', 'blockIndex', 'inputName', 'inputLanguage'],
-    mixins: [TranslateMixin],
+    props: ['value', 'availableBlocks', 'blockIndex', 'inputName', 'languages', 'defaultLanguage'],
+    mixins: [TranslateMixin, FlagLookupMixin],
     data: function() {
       return {
         newBlockType: null,
         blocks: [],
+        activeLanguages: {}
       }
     },
     mounted: function() {
@@ -208,6 +244,33 @@ window.addEventListener('load', () => {
       this.parseValue();
     },
     methods: {
+      setActiveLanguageForField: function(block, field, language) {
+        this.activeLanguages[field] = language;
+        if (!block.i18n_data) {
+          block.i18n_data = {};
+        }
+        if (!block.i18n_data[language] && language !== this.defaultLanguage) {
+          block.i18n_data[language] = {};
+        }
+        // if (!block.i18n_data[language][field]) {
+        //   block.i18n_data[language][field] = '';
+        // }
+
+        // Force an update
+        this.$forceUpdate();
+      },
+      getActiveLanguageForField: function(block, field) {
+        if (this.activeLanguages[field] === undefined) {
+          return this.defaultLanguage;
+        }
+        return this.activeLanguages[field];
+      },
+      isActiveLanguageForField: function(block, field, language) {
+        if (this.activeLanguages[field] === undefined) {
+          return language === this.defaultLanguage;
+        }
+        return this.activeLanguages[field] === language;
+      },
       parseValue: function() {
         this.blocks = JSON.parse(JSON.stringify(this.value));
       },
@@ -274,29 +337,17 @@ window.addEventListener('load', () => {
     template: `
     <div class="page-block-editor">
       <input type="hidden" :name="name" v-model="jsonValue" />
-      
-      <fieldset v-for="language in Object.keys(languages)">
-        <legend><span :class="'flag-icon flag-icon-' + lookupFlag(language)"></span> {{ languages[language] }}</legend>
 
-        <div class="copy-buttons" v-if="Object.keys(languages).length > 1">
-          {{ getText('labelCopyFrom') }}:
-          <button class="button" v-for="(button_language, button_index) in Object.keys(languages)" v-if="language !== button_language"
-              v-on:click.prevent="copyBlocks(button_language, language)">
-            {{ button_language }}
-          </button>
-        </div>
-      
-        <block-editor
-          v-model="blocks[language]"
-          :available-blocks="availableBlocks"
-          v-on:change="onFieldChanged()"
-          :input-name="name"
-          :input-language="language"></block-editor>
-
-      </fieldset>
+      <block-editor
+        v-model="blocks"
+        :available-blocks="availableBlocks"
+        v-on:change="onFieldChanged()"
+        :input-name="name"
+        :languages="languages"
+        :default-language="defaultLanguage"></block-editor>
 
     </div>`,
-    props: ['languages', 'initialValue', 'availableBlocks', 'name'],
+    props: ['languages', 'initialValue', 'availableBlocks', 'name', 'defaultLanguage'],
     mixins: [FlagLookupMixin, TranslateMixin],
     data: function() {
       return {

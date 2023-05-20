@@ -43,18 +43,18 @@ class AbstractPage(models.Model):
             (c, class_from_name(c)) for c in cls.get_available_block_type_classes()
         ]
 
-    def get_blocks_for_language(self, language):
-        return self.blocks.filter(language=language, parent=None).order_by('index')
+    def get_blocks(self):
+        return self.blocks.filter(parent=None).order_by('index')
 
 class Page(AbstractPage):
     pass
 
 class AbstractPageBlock(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    language = models.CharField(max_length=2, db_index=True)
     index = models.IntegerField(default=-1)
     type = models.TextField()
     data = models.JSONField(default=dict)
+    i18n_data = models.JSONField(default=dict)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True,
                                related_name='children')
 
@@ -63,7 +63,11 @@ class AbstractPageBlock(models.Model):
         ordering = ['index']
 
     def get_block(self):
-        return class_from_name(self.type)(data=self.data, instance=self)
+        return class_from_name(self.type)(data={
+            'data': self.data,
+            'i18n_data': self.i18n_data,
+            'type': self.type,
+        }, instance=self)
 
 
 class PageBlock(AbstractPageBlock):

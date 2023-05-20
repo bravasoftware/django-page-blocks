@@ -2,6 +2,7 @@
 <page-block-editor 
     name="{{ widget.name }}"{% if widget.value != None %} initial-value="{{ widget.value|stringformat:'s' }}"{% endif %}{% include "django/forms/widgets/attrs.html" %} v-cloak 
     languages="{{ languages|safe }}"
+    default-language="{{ default_language }}"
     available-blocks="{{ blocks|safe }}"
     translations="{{ translations|safe }}"
 />

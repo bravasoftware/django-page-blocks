@@ -82,6 +82,21 @@
     object-fit: contain;
     cursor: pointer;
 }
+.page-block-editor .field-language-picker {
+    float: right;
+    clear: right;
+    display: flex;
+    gap: 4px;
+}
+.page-block-editor .field-language-picker a {
+    border: 2px solid rgba(0,0,0,0);
+}
+.page-block-editor .field-language-picker a.active {
+    border: 2px solid rgba(255, 255, 255, 1.0);
+}
+.page-block-editor .field-language-picker a:hover {
+    border: 2px solid rgba(255, 255, 255, 0.5);
+}
 
 @media (max-width: 767px) {
     .multi-language-row {

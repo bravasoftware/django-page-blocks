@@ -18,6 +18,7 @@ class LanguagesInputMixin(object):
         ctx['languages'] = base64.b64encode(json.dumps({
             key: str(value) for key, value in settings.LANGUAGES
         }).encode()).decode()
+        ctx['default_language'] = settings.LANGUAGE_CODE
         return ctx
 
 
@@ -48,9 +49,7 @@ class PageBlockEditor(LanguagesInputMixin, forms.TextInput):
 
 
 class PageAdminForm(forms.ModelForm):
-    blocks = forms.JSONField(widget=PageBlockEditor, initial=dict({
-        key: [] for key, _ in settings.LANGUAGES
-    }), required=False)
+    blocks = forms.JSONField(widget=PageBlockEditor, initial=list([]), required=False)
     slug = forms.SlugField(required=False)
 
     class Meta:
@@ -64,10 +63,7 @@ class PageAdminForm(forms.ModelForm):
             self.init_blocks()
 
     def init_blocks(self):
-        languages = [language for language, _ in settings.LANGUAGES]
-        self.fields['blocks'].initial = {
-            language: BlockProcessor().blocks_to_representation(self.instance.blocks.filter(parent=None, language=language)) for language in languages
-        }
+        self.fields['blocks'].initial = BlockProcessor().blocks_to_representation(self.instance.blocks.filter(parent=None))
 
     def clean(self):
         data = self.cleaned_data
@@ -81,11 +77,7 @@ class PageAdminForm(forms.ModelForm):
         if not data:
             return data
 
-        languages = [language for language, _ in settings.LANGUAGES] + list(data.keys())
-
-        return {
-            language: BlockProcessor().clean(data[language], language=language) for language in set(languages)
-        }
+        return BlockProcessor().clean(data)
 
     def generate_slug(self, val):
         slug = slugify(val)
@@ -109,8 +101,4 @@ class PageAdminForm(forms.ModelForm):
         if not block_data:
             block_data = {}
 
-        languages = [language for language, _ in settings.LANGUAGES] + list(block_data.keys())
-        processed_blocks = []
-        for language in set(languages):
-            processed_blocks += BlockProcessor().save(page, block_data.get(language, []),
-                                                      language=language)
+        BlockProcessor().save(page, block_data)
