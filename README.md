@@ -8,6 +8,8 @@ It was developed and tested on Python 3.9 with Django 3.2.  It will probably wor
 
 The code is still under active development and is very much in an alpha state (hence the lack of documentation.  As always, pull requests and feedback welcome.
 
+**CAUTION** django-page-blocks 0.4 includes an overhaul to the internationalization support in the library, with it moving from a per block to per field option.  It's not a breaking change and won't affect sites already using django-page-blocks < 0.4 if you have only been using one language.  For existing multi-language sites, as the language field is stripped from the existing blocks, they will be merged into the same page so you will need to do some editing.
+
 
 ## Getting Started
 
@@ -20,6 +22,8 @@ INSTALLED_APPS = [
   ...
 ]
 ```
+
+You will need to also ensure that you have at least one option set in LANGUAGES, and that your LANGUAGE_CODE is set to one of these options.
 
 You can then either use the base model pageblocks.Page or extend it.
 
