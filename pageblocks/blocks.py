@@ -1,3 +1,4 @@
+import logging
 import base64
 import copy
 import imghdr
@@ -55,10 +56,22 @@ class ImageField(BaseField):
 
 class BlockStreamField(BaseField):
     input_type = 'blockstream'
+    block_types = None
+
+    def __init__(self, block_types=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if block_types:
+            self.block_types = block_types
 
     def serialize_field_definition(self, id):
         fd = super().serialize_field_definition(id)
         fd['initial'] = []
+        fd['block_types'] = []
+        for t in self.block_types if self.block_types else []:
+            try:
+                fd['block_types'].append(t.__module__ + '.' + t.__name__)
+            except Exception as e:
+                logging.error(e)
         return fd
 
 

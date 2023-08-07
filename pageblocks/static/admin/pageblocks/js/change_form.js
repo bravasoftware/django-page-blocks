@@ -120,7 +120,7 @@ window.addEventListener('load', () => {
       <block-editor
         v-if="field.input_type === 'blockstream'"
         v-model="value"
-        :available-blocks="availableBlocks"
+        :available-blocks="filterAvailableBlocks(field)"
         v-on:change="onValueChanged()"
         :block-index="blockIndex"
         :input-name="inputName"
@@ -156,6 +156,18 @@ window.addEventListener('load', () => {
           }
         }
         return null;
+      },
+      filterAvailableBlocks: function(field) {
+        if (!field.block_types || field.block_types.length === 0) {
+          return this.availableBlocks;
+        }
+        const filteredBlocks = {};
+        for (const blockType of field.block_types) {
+          if (this.availableBlocks[blockType] !== undefined) {
+            filteredBlocks[blockType] = this.availableBlocks[blockType];
+          }
+        }
+        return filteredBlocks;
       }
     },
   });
